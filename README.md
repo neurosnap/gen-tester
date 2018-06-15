@@ -29,8 +29,8 @@ test('genCall', (t) => {
   const actual = genTester({
     generator: genCall,
     yields: [
-      respValue,
-      { data: 'value' },
+      respValue, // the result value of `resp` in the generator
+      { data: 'value' }, // the result value of `data` in the generator
     ],
   });
   const expected = [
