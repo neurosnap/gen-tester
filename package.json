@@ -1,0 +1,9 @@
+{
+  "name": "gen-tester",
+  "version": "1.0.0",
+  "description": "Test generators with ease",
+  "main": "index.js",
+  "author": "Eric Bower",
+  "license": "MIT",
+  "private": false
+}
