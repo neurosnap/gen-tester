@@ -2,29 +2,41 @@ const extraStepsException = () => {
   throw new Error('Too many steps were provided for the generator');
 };
 
-function genTester({ generator, args = [], yields = [], shouldReturn = true }) {
-  const gen = generator(...args);
-  const steps = [...yields];
+function genTester(generator, ...args) {
+  const gen = generator.apply(this, args);
 
-  if (shouldReturn) {
-    steps.push(null);
+  return (yields) => {
+    const steps = [...yields];
+
+    steps.push(null); // check for return value
+
+    const results = [];
+    const numSteps = steps.length;
+    const calcResults = (prevValue, value, index) => {
+      const onLastStep = numSteps - 1 === index;
+      const result = gen.next(prevValue);
+
+      if (!result.done && onLastStep) {
+        return;
+      }
+
+      if (result.done && typeof result.value === 'undefined') {
+        return;
+      }
+
+      results.push(result.value);
+
+      if (result.done && !onLastStep) {
+        throw extraStepsException();
+      }
+
+      return value;
+    };
+
+    steps.reduce(calcResults, null);
+
+    return results;
   }
-
-  const results = [];
-  const numSteps = steps.length;
-  steps.reduce((prevValue, value, index) => {
-    const onLastStep = numSteps - 1 === index;
-    const result = gen.next(prevValue);
-    results.push(result.value);
-
-    if (result.done && !onLastStep) {
-      throw extraStepsException();
-    }
-
-    return value;
-  }, null);
-
-  return results;
 }
 
 module.exports = genTester;

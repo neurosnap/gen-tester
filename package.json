@@ -5,5 +5,11 @@
   "main": "index.js",
   "author": "Eric Bower",
   "license": "MIT",
-  "private": false
+  "private": false,
+  "scripts": {
+    "test": "tape test.js"
+  },
+  "devDependencies": {
+    "tape": "^4.9.1"
+  }
 }
