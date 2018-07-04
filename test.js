@@ -94,3 +94,16 @@ test('generator with skipping yield that still returns a value', (t) => {
 
   t.deepEqual(actual, expected);
 });
+
+test('generator should finish without return value', (t) => {
+  t.plan(1);
+
+  function* test(fn) {
+    yield 1;
+    fn();
+  }
+
+  const fn = () => t.pass('should call this function');
+  const tester = genTester(test, fn);
+  tester(skip());
+});

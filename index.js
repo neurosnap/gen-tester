@@ -19,12 +19,14 @@ function genTester(generator, ...args) {
 
   return (...yields) => {
     const steps = [...yields];
+    steps.push(null);
     const actual = [];
     const expected = [];
     const numSteps = steps.length;
-    
+
     const calcResults = (prevValue, value, index) => {
       const onLastStep = numSteps - 1 === index;
+      const onExtraStep = numSteps === index;
       const result = gen.next(prevValue);
 
       const ranOutOfSteps = !result.done && onLastStep
@@ -37,7 +39,7 @@ function genTester(generator, ...args) {
         return;
       }
 
-      const tooManySteps = result.done && !onLastStep
+      const tooManySteps = result.done && onExtraStep;
       if (tooManySteps) {
         throw extraStepsException();
       }
