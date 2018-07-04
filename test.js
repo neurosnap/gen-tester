@@ -1,5 +1,5 @@
 const test = require('tape');
-const genTester = require('./index');
+const { genTester, yields, skip } = require('.');
 
 test('generator with no return value, only checking first 2 yields', (t) => {
   t.plan(1);
@@ -11,12 +11,9 @@ test('generator with no return value, only checking first 2 yields', (t) => {
   }
 
   const tester = genTester(fn);
-  const actual = tester([
-    null,
-    null,
-  ]);
+  const { actual, expected } = tester(1, 2);
 
-  t.deepEqual(actual, [1, 2]);
+  t.deepEqual(actual, expected);
 });
 
 test('generator with arguments', (t) => {
@@ -29,13 +26,9 @@ test('generator with arguments', (t) => {
   }
 
   const tester = genTester(fn, 3);
-  const actual = tester([
-    null,
-    null,
-    null,
-  ]);
+  const { actual, expected } = tester(3, 2, 1);
 
-  t.deepEqual(actual, [3, 2, 1]);
+  t.deepEqual(actual, expected);
 });
 
 test('generator with return value', (t) => {
@@ -48,12 +41,9 @@ test('generator with return value', (t) => {
   }
 
   const tester = genTester(fn);
-  const actual = tester([
-    null,
-    null,
-  ]);
+  const { actual, expected } = tester(1, 2, 3);
 
-  t.deepEqual(actual, [1, 2, 3]);
+  t.deepEqual(actual, expected);
 });
 
 test('generator mocking yield response values', (t) => {
@@ -65,10 +55,42 @@ test('generator mocking yield response values', (t) => {
   }
 
   const tester = genTester(fn);
-  const actual = tester([
-    3,
-    null,
-  ]);
+  const { actual, expected } = tester(
+    yields(1, 3),
+    5,
+  );
 
-  t.deepEqual(actual, [1, 5]);
+  t.deepEqual(actual, expected);
+});
+
+test('generator with skipping yield', (t) => {
+  t.plan(1);
+
+  function* fn() {
+    yield 1;
+    yield 2;
+    return 3;
+  }
+
+  const tester = genTester(fn);
+  const { actual, expected } = tester(skip(), 2, 3);
+
+  t.deepEqual(actual, expected);
+});
+
+test('generator with skipping yield that still returns a value', (t) => {
+  t.plan(1);
+
+  function* fn() {
+    const val = yield 1;
+    yield val + 2;
+  }
+
+  const tester = genTester(fn);
+  const { actual, expected } = tester(
+    skip(3),
+    5,
+  );
+
+  t.deepEqual(actual, expected);
 });

@@ -13,7 +13,7 @@ to the previous `yield`.
 ```js
 const { call } = require('sead'); // side-effects as data library
 const test = require('tape');
-const genTester = require('gen-tester');
+const { genTester, yields } = require('gen-tester');
 
 function* genCall() {
   const resp = yield call(fetch, 'http://httpbin.org/get');
@@ -28,16 +28,17 @@ test('genCall', (t) => {
   const returnValue = { data: 'value', extra: 'stuff' };
 
   const tester = genTester(genCall);
-  const actual = tester([
-    respValue,         // the result value of `resp` in the generator
-    { data: 'value' }, // the result value of `data` in the generator
-  ]);
-
-  const expected = [
-    call(fetch, 'http://httpbin.org/get'),
-    call([respValue, 'json']),
+  const { actual, expected } = tester(
+    yields(
+      call(fetch, 'http://httpbin.org/get'),
+      respValue, // the result value of `resp` in the generator
+    ),
+    yields(
+      call([respValue, 'json']),
+      { data: 'value' }, // the result value of `data` in the generator
+    ),
     returnValue,
-  ];
+  );
 
   t.deepEqual(actual, expected);
 });
@@ -89,10 +90,58 @@ const tester = genTester(generator, arg1, arg2, ...);
 `tester` which is the return value of `genTester` accepts an array of yields
 and returns a list of results from the generator at each step
 
-* `yields` (array, default: []), a list of `yield`s that the generator will call with the value that will be the result of the yield
+* `yields` (array, default: []), a list of `yield`s that the generator will call
+with the value that will be the result of the yield as well as what was expected
+of that yield.
 
 ```js
-const actual = tester([1, 2]);
-console.log(actual);
-// [each, yield, and, return]
+const results = tester(
+  yields('each', 1),
+  yields('yield', 2),
+  'and return',
+);
+console.log(results);
+/*
+{
+  actual: ['each', 'yield', 'and return'],
+  expected: ['each', 'yield', 'and return'],
+}
+*/
 ```
+
+ `yields` is a helper function that will allow the user to send the expected results
+ of a yield as well as the return value of that yield.  This is primarily used
+ to inject values into yields for mocking purposes.
+
+ * `expected` (any), what we expect the yield to yield
+ * `returns` (any), what we want the yield to yield for mocking
+
+ `skip` is a helper function that will allow the user to skip a yield.  The generator
+ will progress to the next steps as normal, but we will not keep track of the results
+ or expectations of that yield.
+
+ * `returns` (any), what we want the yield to yield for mocking
+
+ ```js
+const { skip } = require('gen-tester');
+
+function* test() {
+  yield 1;
+  const resp = yield call(fetch, 'google.com');
+  if (resp.status !== 200) {
+    return;
+  }
+  const val = yield call([resp, 'json']);
+  return val;
+}
+
+const results = tester(
+  skip(),
+  yields(
+    call(fetch, 'google.com'),
+    { status: 200 },
+  ),
+  skip({ with: 'value' }),
+  { with: 'value' },
+);
+ ```
