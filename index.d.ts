@@ -7,8 +7,7 @@ declare module 'gen-tester' {
     expected: any[];
     returns: any;
   }
-  export function runner(...args: any): TesterResults;
-  export function genTester(fn: Function, ...args: any): runner;
+  export function genTester(fn: Function, ...args: any[]): (...args: any[]) => TesterResults;
   export function skip(value?: any): YieldResult;
   export function yields(value: any, returns?: any): YieldResult;
 }
