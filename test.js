@@ -1,5 +1,5 @@
 const test = require('tape');
-const { genTester, yields, skip } = require('.');
+const { genTester, yields, skip, throws } = require('.');
 
 test('generator with no return value, only checking first 2 yields', (t) => {
   t.plan(1);
@@ -106,4 +106,29 @@ test('generator should finish without return value', (t) => {
   const fn = () => t.pass('should call this function');
   const tester = genTester(test, fn);
   tester(skip());
+});
+
+test('generator that yields an exception', (t) => {
+  t.plan(1);
+
+  function* test() {
+    let value = 1;
+    try {
+      yield 1;
+    } catch (err) {
+      value = 2;
+      yield err + ' handled';
+    }
+
+    return value;
+  }
+
+  const tester = genTester(test);
+  const { actual, expected } = tester(
+    skip(1),
+    throws('ERROR'),
+    skip('ERROR handled'),
+    2,
+  );
+  t.deepEqual(actual, expected);
 });

@@ -95,6 +95,9 @@ with the value that will be the result of the yield as well as what was expected
 of that yield.
 
 ```js
+const { genTester, yields } = require('gen-tester');
+
+const tester = genTester(someFn);
 const results = tester(
   yields('each', 1),
   yields('yield', 2),
@@ -145,3 +148,34 @@ const results = tester(
   { with: 'value' },
 );
  ```
+
+ `throws` allows the developer to throw an exception inside a generator.
+
+ * `returns` (any)
+
+```js
+const assert = require('assert');
+const { genTester, throw, skip } = require('gen-tester');
+
+function* test() {
+  let value = 1;
+  try {
+    yield 1;
+  } catch (err) {
+    value = 2;
+    yield err + ' handled';
+  }
+
+  return value;
+}
+
+const tester = genTester(test);
+const { actual, expected } = tester(
+  skip(1),
+  throws('ERROR'),
+  skip('ERROR handled'),
+  2,
+);
+
+assert.deepEqual(actual, expected);
+```

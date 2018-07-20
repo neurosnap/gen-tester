@@ -2,17 +2,29 @@ const extraStepsException = () => {
   throw new Error('Too many steps were provided for the generator');
 };
 
+const THROW = '@@genTester/THROW';
 const isObject = (value) => Object == value.constructor;
 const isYieldWithReturns = (value) => (
-  isObject(value)
+  value
+  && isObject(value)
   && value.hasOwnProperty('expected')
   && value.hasOwnProperty('returns')
+);
+const isThrows = (value) => (
+  value
+  && isObject(value)
+  && value.hasOwnProperty('returns')
+  && value.type === THROW
 );
 const yields = (expected, returns) => ({
   expected,
   returns,
 });
 const skip = (returns) => yields(null, returns);
+const throws = (returns) => ({
+  type: THROW,
+  returns,
+});
 
 function genTester(generator, ...args) {
   const gen = generator.apply(this, args);
@@ -27,7 +39,7 @@ function genTester(generator, ...args) {
     const calcResults = (prevValue, value, index) => {
       const onLastStep = numSteps - 1 === index;
       const onExtraStep = numSteps === index;
-      const result = gen.next(prevValue);
+      const result = isThrows(value) ? gen.throw(value.returns) : gen.next(prevValue);
 
       const ranOutOfSteps = !result.done && onLastStep
       if (ranOutOfSteps) {
@@ -50,6 +62,11 @@ function genTester(generator, ...args) {
         const isSkippable = value.expected === null;
         actual.push(isSkippable ? null : result.value);
         return value.returns;
+      } else if (isThrows(value)) {
+        expected.push(result.value);
+
+        actual.push(result.value);
+        return value.returns;
       }
 
       actual.push(result.value);
@@ -62,4 +79,4 @@ function genTester(generator, ...args) {
   };
 }
 
-module.exports = { genTester, yields, skip };
+module.exports = { genTester, yields, skip, throws };
