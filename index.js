@@ -1,6 +1,9 @@
 const extraStepsException = () => {
   throw new Error('Too many steps were provided for the generator');
 };
+const throwsArgMustBeFunction = () => {
+  throw new Error('throws param must be function that returns boolean');
+};
 
 const THROW = '@@genTester/THROW';
 const isObject = (value) => Object == value.constructor;
@@ -39,7 +42,23 @@ function genTester(generator, ...args) {
     const calcResults = (prevValue, value, index) => {
       const onLastStep = numSteps - 1 === index;
       const onExtraStep = numSteps === index;
-      const result = isThrows(prevValue) ? gen.throw(prevValue.returns) : gen.next(prevValue);
+
+      let result;
+      try {
+        result = isThrows(prevValue) ? gen.throw(prevValue.returns) : gen.next(prevValue);
+      } catch (err) {
+        expected.push(true);
+
+        if (isThrows(value)) {
+          if (typeof value.returns !== 'function') {
+            throw throwsArgMustBeFunction ();
+          }
+
+          actual.push(value.returns(err));
+        }
+
+        return;
+      }
 
       const ranOutOfSteps = !result.done && onLastStep
       if (ranOutOfSteps) {

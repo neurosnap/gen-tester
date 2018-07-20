@@ -132,3 +132,27 @@ test('generator that yields an exception', (t) => {
   console.log(actual, expected);
   t.deepEqual(actual, expected);
 });
+
+test('generator that throws an exception', (t) => {
+  t.plan(1);
+
+  function* test() {
+    let value = 1;
+    try {
+      yield 1;
+    } catch (err) {
+      value = 2;
+      throw new Error('Sup');
+    }
+
+    return value;
+  }
+
+  const tester = genTester(test);
+  const { actual, expected } = tester(
+    yields(1, throws('ERROR')),
+    throws((actual) => actual instanceof Error),
+  );
+  console.log(actual, expected);
+  t.deepEqual(actual, expected);
+});
