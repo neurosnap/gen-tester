@@ -125,10 +125,10 @@ test('generator that yields an exception', (t) => {
 
   const tester = genTester(test);
   const { actual, expected } = tester(
-    skip(1),
-    throws('ERROR'),
-    skip('ERROR handled'),
+    yields(1, throws('ERROR')),
+    yields('ERROR handled'),
     2,
   );
+  console.log(actual, expected);
   t.deepEqual(actual, expected);
 });

@@ -155,7 +155,7 @@ const results = tester(
 
 ```js
 const assert = require('assert');
-const { genTester, throw, skip } = require('gen-tester');
+const { genTester, throws, skip } = require('gen-tester');
 
 function* test() {
   let value = 1;
@@ -171,11 +171,11 @@ function* test() {
 
 const tester = genTester(test);
 const { actual, expected } = tester(
-  skip(1),
-  throws('ERROR'), // even though there are 2 yields + 1 return, we inject another one here to actually throw
-  skip('ERROR handled'),
+  yields(1, throws('ERROR')),
+  yields('ERROR handled'),
   2,
 );
+console.log(actual, expected);
 
 assert.deepEqual(actual, expected);
 ```

@@ -39,7 +39,7 @@ function genTester(generator, ...args) {
     const calcResults = (prevValue, value, index) => {
       const onLastStep = numSteps - 1 === index;
       const onExtraStep = numSteps === index;
-      const result = isThrows(value) ? gen.throw(value.returns) : gen.next(prevValue);
+      const result = isThrows(prevValue) ? gen.throw(prevValue.returns) : gen.next(prevValue);
 
       const ranOutOfSteps = !result.done && onLastStep
       if (ranOutOfSteps) {
