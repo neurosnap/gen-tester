@@ -172,7 +172,7 @@ function* test() {
 const tester = genTester(test);
 const { actual, expected } = tester(
   skip(1),
-  throws('ERROR'),
+  throws('ERROR'), // even though there are 2 yields + 1 return, we inject another one here to actually throw
   skip('ERROR handled'),
   2,
 );
