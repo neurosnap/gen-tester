@@ -51,7 +51,7 @@ function genTester(generator, ...args) {
 
         if (isThrows(value)) {
           if (typeof value.returns !== 'function') {
-            throw throwsArgMustBeFunction ();
+            throw throwsArgMustBeFunction();
           }
 
           actual.push(value.returns(err));

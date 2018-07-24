@@ -77,6 +77,8 @@ test('genCall', (t) => {
 
 ## API
 
+## genTester
+
 `genTester` accepts a generator function and arguments to pass to generator and
 returns a function that accepts an array of yields, described below:
 
@@ -112,12 +114,16 @@ console.log(results);
 */
 ```
 
+## yields
+
  `yields` is a helper function that will allow the user to send the expected results
  of a yield as well as the return value of that yield.  This is primarily used
  to inject values into yields for mocking purposes.
 
  * `expected` (any), what we expect the yield to yield
  * `returns` (any), what we want the yield to yield for mocking
+
+## skip
 
  `skip` is a helper function that will allow the user to skip a yield.  The generator
  will progress to the next steps as normal, but we will not keep track of the results
@@ -149,7 +155,9 @@ const results = tester(
 );
  ```
 
- `throws` allows the developer to throw an exception inside a generator.
+## throws
+
+`throws` allows the developer to throw an exception inside a generator.
 
  * `returns` (any)
 
@@ -174,6 +182,29 @@ const { actual, expected } = tester(
   yields(1, throws('ERROR')),
   yields('ERROR handled'),
   2,
+);
+console.log(actual, expected);
+
+assert.deepEqual(actual, expected);
+```
+
+`throws` can also be used when something throws an exception between yields.
+When asserting that an exception is raised, you must pass it a function which
+will receive the error as an argument.
+
+```js
+const assert = require('assert');
+const { genTester, yields, throws } = require('gen-tester');
+
+function* test() {
+  yield 1;
+  throw new Error('Something happened');
+}
+
+const tester = genTester(test);
+const { actual, expected } = tester(
+  yields(1);
+  throws((error) => error.message === 'Something happened');
 );
 console.log(actual, expected);
 
