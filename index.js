@@ -7,18 +7,16 @@ const throwsArgMustBeFunction = () => {
 
 const THROW = '@@genTester/THROW';
 const isObject = (value) => Object == value.constructor;
-const isYieldWithReturns = (value) => (
-  value
-  && isObject(value)
-  && value.hasOwnProperty('expected')
-  && value.hasOwnProperty('returns')
-);
-const isThrows = (value) => (
-  value
-  && isObject(value)
-  && value.hasOwnProperty('returns')
-  && value.type === THROW
-);
+const isYieldWithReturns = (value) =>
+  value &&
+  isObject(value) &&
+  value.hasOwnProperty('expected') &&
+  value.hasOwnProperty('returns');
+const isThrows = (value) =>
+  value &&
+  isObject(value) &&
+  value.hasOwnProperty('returns') &&
+  value.type === THROW;
 const yields = (expected, returns) => ({
   expected,
   returns,
@@ -45,7 +43,9 @@ function genTester(generator, ...args) {
 
       let result;
       try {
-        result = isThrows(prevValue) ? gen.throw(prevValue.returns) : gen.next(prevValue);
+        result = isThrows(prevValue)
+          ? gen.throw(prevValue.returns)
+          : gen.next(prevValue);
       } catch (err) {
         expected.push(true);
 
@@ -55,17 +55,20 @@ function genTester(generator, ...args) {
           }
 
           actual.push(value.returns(err));
+        } else {
+          throw err;
         }
 
         return;
       }
 
-      const ranOutOfSteps = !result.done && onLastStep
+      const ranOutOfSteps = !result.done && onLastStep;
       if (ranOutOfSteps) {
         return;
       }
 
-      const hasNoReturnValue = result.done && typeof result.value === 'undefined';
+      const hasNoReturnValue =
+        result.done && typeof result.value === 'undefined';
       if (hasNoReturnValue) {
         return;
       }

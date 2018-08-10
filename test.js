@@ -55,10 +55,7 @@ test('generator mocking yield response values', (t) => {
   }
 
   const tester = genTester(fn);
-  const { actual, expected } = tester(
-    yields(1, 3),
-    5,
-  );
+  const { actual, expected } = tester(yields(1, 3), 5);
 
   t.deepEqual(actual, expected);
 });
@@ -87,10 +84,7 @@ test('generator with skipping yield that still returns a value', (t) => {
   }
 
   const tester = genTester(fn);
-  const { actual, expected } = tester(
-    skip(3),
-    5,
-  );
+  const { actual, expected } = tester(skip(3), 5);
 
   t.deepEqual(actual, expected);
 });
@@ -129,7 +123,6 @@ test('generator that yields an exception', (t) => {
     yields('ERROR handled'),
     2,
   );
-  console.log(actual, expected);
   t.deepEqual(actual, expected);
 });
 
@@ -153,6 +146,16 @@ test('generator that throws an exception', (t) => {
     yields(1, throws('ERROR')),
     throws((actual) => actual instanceof Error),
   );
-  console.log(actual, expected);
   t.deepEqual(actual, expected);
+});
+
+test('generator that throws an exception and is not handled', (t) => {
+  t.plan(1);
+  function* test() {
+    yield 1;
+    throw new Error('error');
+  }
+
+  const tester = genTester(test);
+  t.throws(() => tester(yields(1)), 'should throw an error when run');
 });
