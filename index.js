@@ -5,6 +5,7 @@ const throwsArgMustBeFunction = () => {
   throw new Error('throws param must be function that returns boolean');
 };
 
+const FINISHES = '@@genTester/FINISHES';
 const THROW = '@@genTester/THROW';
 const isObject = (value) => Object == value.constructor;
 const isYieldWithReturns = (value) =>
@@ -26,6 +27,16 @@ const throws = (returns) => ({
   type: THROW,
   returns,
 });
+const finishes = (expected, returns) => ({
+  type: FINISHES,
+  expected,
+  returns,
+});
+const shouldFinish = (value) =>
+  value &&
+  isObject(value) &&
+  value.hasOwnProperty('type') &&
+  value.type === FINISHES;
 
 function genTester(generator, ...args) {
   const gen = generator.apply(this, args);
@@ -78,6 +89,14 @@ function genTester(generator, ...args) {
         throw extraStepsException();
       }
 
+      if (shouldFinish(value)) {
+        if (!result.done) {
+          actual.push({ done: false });
+          expected.push({ done: true });
+          return value;
+        }
+      }
+
       if (isYieldWithReturns(value)) {
         expected.push(value.expected);
 
@@ -101,4 +120,45 @@ function genTester(generator, ...args) {
   };
 }
 
-module.exports = { genTester, yields, skip, throws };
+function evaluateSteps({ actual, expected, equal }) {
+  if (actual.length !== expected.length) {
+    return {
+      message: () =>
+        `actual steps: ${actual.length}, expected steps: ${expected.length}`,
+      pass: false,
+    };
+  }
+
+  for (let i = 0; i < actual.length; i++) {
+    const aitem = actual[i];
+    const same = equal(aitem, expected[i]);
+    if (!same) {
+      return {
+        message: () =>
+          `error on step ${i + 1}, actual and expected are not the same`,
+        pass: false,
+        actual: aitem,
+        expected: expected[i],
+      };
+    }
+  }
+
+  return {
+    pass: true,
+  };
+}
+
+function stepsToBeEqual(received) {
+  const { actual, expected } = received;
+  return evaluateSteps({ actual, expected, equal: this.equal });
+}
+
+module.exports = {
+  genTester,
+  yields,
+  skip,
+  throws,
+  evaluateSteps,
+  finishes,
+  stepsToBeEqual,
+};

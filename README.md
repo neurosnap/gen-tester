@@ -4,7 +4,7 @@ Test generators with ease
 
 ## Why?
 
-Testing generators is kind of a pain to do manually.  Because of the way generators
+Testing generators is kind of a pain to do manually. Because of the way generators
 work, the order in which mock values are injected into a generator relates
 to the previous `yield`.
 
@@ -67,11 +67,7 @@ test('genCall', (t) => {
 
   const last = gen.next({ data: 'value' });
   t.ok(last.done, 'generator should finish');
-  t.deepEqual(
-    last.value,
-    { data: 'value' },
-    'should return data',
-  );
+  t.deepEqual(last.value, { data: 'value' }, 'should return data');
 });
 ```
 
@@ -82,8 +78,8 @@ test('genCall', (t) => {
 `genTester` accepts a generator function and arguments to pass to generator and
 returns a function that accepts an array of yields, described below:
 
-* `generator` (generator function), the generator function to test
-* `args` (array, default: []), a list of arguments being called with `generator`
+- `generator` (generator function), the generator function to test
+- `args` (array, default: []), a list of arguments being called with `generator`
 
 ```js
 const tester = genTester(generator, arg1, arg2, ...);
@@ -92,19 +88,15 @@ const tester = genTester(generator, arg1, arg2, ...);
 `tester` which is the return value of `genTester` accepts an array of yields
 and returns a list of results from the generator at each step
 
-* `yields` (array, default: []), a list of `yield`s that the generator will call
-with the value that will be the result of the yield as well as what was expected
-of that yield.
+- `yields` (array, default: []), a list of `yield`s that the generator will call
+  with the value that will be the result of the yield as well as what was expected
+  of that yield.
 
 ```js
 const { genTester, yields } = require('gen-tester');
 
 const tester = genTester(someFn);
-const results = tester(
-  yields('each', 1),
-  yields('yield', 2),
-  'and return',
-);
+const results = tester(yields('each', 1), yields('yield', 2), 'and return');
 console.log(results);
 /*
 {
@@ -116,22 +108,22 @@ console.log(results);
 
 ## yields
 
- `yields` is a helper function that will allow the user to send the expected results
- of a yield as well as the return value of that yield.  This is primarily used
- to inject values into yields for mocking purposes.
+`yields` is a helper function that will allow the user to send the expected results
+of a yield as well as the return value of that yield. This is primarily used
+to inject values into yields for mocking purposes.
 
- * `expected` (any), what we expect the yield to yield
- * `returns` (any), what we want the yield to yield for mocking
+- `expected` (any), what we expect the yield to yield
+- `returns` (any), what we want the yield to yield for mocking
 
 ## skip
 
- `skip` is a helper function that will allow the user to skip a yield.  The generator
- will progress to the next steps as normal, but we will not keep track of the results
- or expectations of that yield.
+`skip` is a helper function that will allow the user to skip a yield. The generator
+will progress to the next steps as normal, but we will not keep track of the results
+or expectations of that yield.
 
- * `returns` (any), what we want the yield to yield for mocking
+- `returns` (any), what we want the yield to yield for mocking
 
- ```js
+```js
 const { skip } = require('gen-tester');
 
 function* test() {
@@ -146,20 +138,17 @@ function* test() {
 
 const results = tester(
   skip(),
-  yields(
-    call(fetch, 'google.com'),
-    { status: 200 },
-  ),
+  yields(call(fetch, 'google.com'), { status: 200 }),
   skip({ with: 'value' }),
   { with: 'value' },
 );
- ```
+```
 
 ## throws
 
 `throws` allows the developer to throw an exception inside a generator.
 
- * `returns` (any)
+- `returns` (any)
 
 ```js
 const assert = require('assert');
@@ -209,4 +198,71 @@ const { actual, expected } = tester(
 console.log(actual, expected);
 
 assert.deepEqual(actual, expected);
+```
+
+`finishes` ensures that the last step is marked as `done` by the generator.
+
+```js
+const { genTester, finishes } = require('gen-tester');
+
+test('generator finished with finishes', (t) => {
+  t.plan(1);
+
+  function* fn() {
+    yield 1;
+    yield 2;
+    return 3;
+  }
+
+  const tester = genTester(fn);
+  const { actual, expected } = tester(1, 2, finishes(3));
+  t.deepEqual(actual, expected);
+});
+```
+
+`evaluateSteps` is a helper that takes the results of `genTester` and determines
+what steps are no equal and displays more useful information.
+
+```js
+const { genTester } = require('gen-tester');
+const deepEqual = require('fast-deep-equal');
+
+function* fn() {
+  yield 1;
+  yield 2;
+  return 3;
+}
+
+const tester = genTester(fn);
+const { actual, expected } = tester(1, 4, 3);
+const results = evauluateSteps({ actual, expected, equal: deepEqual });
+console.log(results);
+/*
+{
+  message: [Function: message],
+  pass: false,
+  actual: 2,
+  expected: 4,
+}
+*/
+```
+
+`stepsToBeEqual` is a jest matcher that uses `evaluateSteps`
+
+```js
+const { genTester, stepsToBeEqual } = require('gen-tester');
+
+expect.extends({
+  stepsToBeEqual,
+});
+
+function* fn() {
+  yield 1;
+  yield 2;
+  return 3;
+}
+
+const tester = genTester(fn);
+const results = tester(1, 2, 3);
+expect(results).stepsToBeEqual();
 ```

@@ -1,5 +1,13 @@
 const test = require('tape');
-const { genTester, yields, skip, throws } = require('.');
+const {
+  genTester,
+  yields,
+  skip,
+  throws,
+  evaluateSteps,
+  finishes,
+} = require('.');
+const deepEqual = require('fast-deep-equal');
 
 test('generator with no return value, only checking first 2 yields', (t) => {
   t.plan(1);
@@ -72,6 +80,87 @@ test('generator with skipping yield', (t) => {
   const tester = genTester(fn);
   const { actual, expected } = tester(skip(), 2, 3);
 
+  t.deepEqual(actual, expected);
+});
+
+test('evaluateSteps failure', (t) => {
+  t.plan(4);
+
+  function* fn() {
+    yield 1;
+    yield 2;
+    return 3;
+  }
+
+  const tester = genTester(fn);
+  const { actual, expected } = tester(skip(), 4, 3);
+
+  const result = evaluateSteps({ actual, expected, equal: deepEqual });
+  t.equal(result.pass, false);
+  t.equal(result.actual, 2);
+  t.equal(result.expected, 4);
+  t.equal(
+    result.message(),
+    'error on step 2, actual and expected are not the same',
+  );
+});
+
+test('evaluateSteps success', (t) => {
+  t.plan(1);
+
+  function* fn() {
+    yield 1;
+    yield 2;
+    return 3;
+  }
+
+  const tester = genTester(fn);
+  const { actual, expected } = tester(skip(), 2, 3);
+
+  const result = evaluateSteps({ actual, expected, equal: deepEqual });
+  t.equal(result.pass, true);
+});
+
+test('generator not finished', (t) => {
+  t.plan(1);
+
+  function* fn() {
+    yield 1;
+    yield 2;
+    return 3;
+  }
+
+  const tester = genTester(fn);
+  const { actual, expected } = tester(1);
+  t.deepEqual(actual, expected);
+});
+
+test('generator not finished with finishes', (t) => {
+  t.plan(2);
+
+  function* fn() {
+    yield 1;
+    yield 2;
+    return 3;
+  }
+
+  const tester = genTester(fn);
+  const { actual, expected } = tester(finishes(1));
+  t.deepEqual(actual, [{ done: false }]);
+  t.deepEqual(expected, [{ done: true }]);
+});
+
+test('generator finished with finishes', (t) => {
+  t.plan(1);
+
+  function* fn() {
+    yield 1;
+    yield 2;
+    return 3;
+  }
+
+  const tester = genTester(fn);
+  const { actual, expected } = tester(1, 2, finishes(3));
   t.deepEqual(actual, expected);
 });
 
