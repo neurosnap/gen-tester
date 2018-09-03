@@ -200,6 +200,8 @@ console.log(actual, expected);
 assert.deepEqual(actual, expected);
 ```
 
+## finishes
+
 `finishes` ensures that the last step is marked as `done` by the generator.
 
 ```js
@@ -219,6 +221,8 @@ test('generator finished with finishes', (t) => {
   t.deepEqual(actual, expected);
 });
 ```
+
+## evaluateSteps
 
 `evaluateSteps` is a helper that takes the results of `genTester` and determines
 what steps are no equal and displays more useful information.
@@ -246,6 +250,8 @@ console.log(results);
 }
 */
 ```
+
+## stepsToBeEqual
 
 `stepsToBeEqual` is a jest matcher that uses `evaluateSteps`
 
