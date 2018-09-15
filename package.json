@@ -7,6 +7,10 @@
   "author": "Eric Bower",
   "license": "MIT",
   "private": false,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/neurosnap/gen-tester.git"
+  },
   "scripts": {
     "test": "tape test.js",
     "prettier": "prettier --write *.{js,ts}",
