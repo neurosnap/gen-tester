@@ -248,3 +248,16 @@ test('generator that throws an exception and is not handled', (t) => {
   const tester = genTester(test);
   t.throws(() => tester(yields(1)), 'should throw an error when run');
 });
+
+test('when there are more steps in test than generator', (t) => {
+  t.plan(2);
+
+  function* test() {
+    yield 1;
+  }
+
+  const tester = genTester(test);
+  const { actual, expected } = tester(yields(1), yields(2), yields(3));
+  t.deepEqual(expected, [1, 2, 3], 'expected should not match actual');
+  t.deepEqual(actual, [1]);
+});
