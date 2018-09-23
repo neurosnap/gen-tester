@@ -1,6 +1,3 @@
-const extraStepsException = () => {
-  throw new Error('Too many steps were provided for the generator');
-};
 const throwsArgMustBeFunction = () => {
   throw new Error('throws param must be function that returns boolean');
 };
@@ -32,7 +29,7 @@ const finishes = (expected, returns) => ({
   expected,
   returns,
 });
-const shouldFinish = (value) =>
+const shouldBeFinished = (value) =>
   value &&
   isObject(value) &&
   value.hasOwnProperty('type') &&
@@ -50,7 +47,6 @@ function genTester(generator, ...args) {
 
     const calcResults = (prevValue, value, index) => {
       const onLastStep = numSteps - 1 === index;
-      const onExtraStep = numSteps === index;
 
       let result;
       try {
@@ -78,18 +74,19 @@ function genTester(generator, ...args) {
         return;
       }
 
+      const tooManySteps = result.done && !onLastStep;
+      if (tooManySteps && value.expected && !shouldBeFinished(value)) {
+        expected.push(value.expected);
+        return;
+      }
+
       const hasNoReturnValue =
         result.done && typeof result.value === 'undefined';
       if (hasNoReturnValue) {
         return;
       }
 
-      const tooManySteps = result.done && onExtraStep;
-      if (tooManySteps) {
-        throw extraStepsException();
-      }
-
-      if (shouldFinish(value)) {
+      if (shouldBeFinished(value)) {
         if (!result.done) {
           actual.push({ done: false });
           expected.push({ done: true });
@@ -150,7 +147,7 @@ function evaluateSteps({ actual, expected, equal }) {
 
 function stepsToBeEqual(received) {
   const { actual, expected } = received;
-  return evaluateSteps({ actual, expected, equal: this.equal });
+  return evaluateSteps({ actual, expected, equal: this.equals });
 }
 
 module.exports = {

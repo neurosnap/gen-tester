@@ -258,7 +258,7 @@ console.log(results);
 ```js
 const { genTester, stepsToBeEqual } = require('gen-tester');
 
-expect.extends({
+expect.extend({
   stepsToBeEqual,
 });
 
