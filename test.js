@@ -1,4 +1,5 @@
 const test = require('tape');
+const diff = require('jest-diff');
 const {
   genTester,
   yields,
@@ -94,8 +95,10 @@ test('evaluateSteps failure', (t) => {
 
   const tester = genTester(fn);
   const { actual, expected } = tester(skip(), 4, 3);
-
-  const result = evaluateSteps({ actual, expected, equal: deepEqual });
+  const message = (actual, expected, i) => {
+    return `error on step ${i + 1}, actual and expected are not the same`;
+  };
+  const result = evaluateSteps({ actual, expected, equal: deepEqual, message });
   t.equal(result.pass, false);
   t.equal(result.actual, 2);
   t.equal(result.expected, 4);

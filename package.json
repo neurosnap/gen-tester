@@ -28,5 +28,8 @@
       "prettier --write",
       "git add"
     ]
+  },
+  "dependencies": {
+    "jest-diff": "^23.6.0"
   }
 }

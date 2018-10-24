@@ -1,3 +1,5 @@
+const diff = require('jest-diff');
+
 const throwsArgMustBeFunction = () => {
   throw new Error('throws param must be function that returns boolean');
 };
@@ -127,22 +129,28 @@ function genTester(generator, ...args) {
   };
 }
 
-function evaluateSteps({ actual, expected, equal }) {
-  if (actual.length !== expected.length) {
-    return {
-      message: () =>
-        `actual steps: ${actual.length}, expected steps: ${expected.length}`,
-      pass: false,
-    };
-  }
-
+function evaluateSteps({ actual, expected, equal, message }) {
   for (let i = 0; i < actual.length; i++) {
     const aitem = actual[i];
     const same = equal(aitem, expected[i]);
     if (!same) {
+      const msg = message(actual, expected, i);
       return {
-        message: () =>
-          `error on step ${i + 1}, actual and expected are not the same`,
+        message: () => msg,
+        pass: false,
+        actual: aitem,
+        expected: expected[i],
+      };
+    }
+  }
+
+  for (let i = 0; i < expected.length; i++) {
+    const aitem = actual[i];
+    const same = equal(aitem, expected[i]);
+    if (!same) {
+      const msg = message(actual, expected, i);
+      return {
+        message: () => msg,
         pass: false,
         actual: aitem,
         expected: expected[i],
@@ -157,7 +165,25 @@ function evaluateSteps({ actual, expected, equal }) {
 
 function stepsToBeEqual(received) {
   const { actual, expected } = received;
-  return evaluateSteps({ actual, expected, equal: this.equals });
+  console.log(actual, expected);
+  const message = (actual, expected, index) => {
+    const diffString = diff(expected, actual);
+    const diffMsg = `
+
+    Difference:
+
+${diffString}`;
+
+    return `${this.utils.matcherHint('.stepsToBeEqual')}
+
+Expected on step ${index + 1}:
+  ${this.utils.printExpected(expected[index])}
+Received:
+  ${this.utils.printReceived(actual[index])}
+${diffString ? diffMsg : ''}
+    `;
+  };
+  return evaluateSteps({ actual, expected, equal: this.equals, message });
 }
 
 module.exports = {
