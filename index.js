@@ -165,7 +165,6 @@ function evaluateSteps({ actual, expected, equal, message }) {
 
 function stepsToBeEqual(received) {
   const { actual, expected } = received;
-  console.log(actual, expected);
   const message = (actual, expected, index) => {
     const diffString = diff(expected, actual);
     const diffMsg = `
