@@ -146,7 +146,7 @@ test('generator not finished with finishes', (t) => {
 
   const tester = genTester(fn);
   const { actual, expected } = tester(finishes(1));
-  t.deepEqual(actual, [{ done: false }]);
+  t.deepEqual(actual, [{ done: false, value: 1 }]);
   t.deepEqual(expected, [{ done: true }]);
 });
 
@@ -161,6 +161,49 @@ test('generator finished with finishes', (t) => {
 
   const tester = genTester(fn);
   const { actual, expected } = tester(1, 2, finishes(3));
+  t.deepEqual(actual, expected);
+});
+
+test('generator finished with finishes but wrong value', (t) => {
+  t.plan(2);
+
+  function* fn() {
+    yield 1;
+    yield 2;
+    return 3;
+  }
+
+  const tester = genTester(fn);
+  const { actual, expected } = tester(1, 2, finishes(4));
+  t.deepEqual(actual, [1, 2, 3]);
+  t.deepEqual(expected, [1, 2, 4]);
+});
+
+test('generator finished with expectations after finish', (t) => {
+  t.plan(2);
+
+  function* fn() {
+    yield 1;
+    yield 2;
+    return 3;
+  }
+
+  const tester = genTester(fn);
+  const { actual, expected } = tester(1, 2, finishes(3), 4);
+  t.deepEqual(actual, [1, 2, 3]);
+  t.deepEqual(expected, [1, 2, 3, 4]);
+});
+
+test('generator finished with finishes but no return value', (t) => {
+  t.plan(1);
+
+  function* fn() {
+    yield 1;
+    yield 2;
+  }
+
+  const tester = genTester(fn);
+  const { actual, expected } = tester(1, 2, finishes());
   t.deepEqual(actual, expected);
 });
 

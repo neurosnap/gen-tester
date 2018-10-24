@@ -40,10 +40,11 @@ function genTester(generator, ...args) {
 
   return (...yields) => {
     const steps = [...yields];
-    steps.push(null);
+    steps.push(null); // create null step to check to see if gen is done
     const actual = [];
     const expected = [];
     const numSteps = steps.length;
+    let prevDone = false;
 
     const calcResults = (prevValue, value, index) => {
       const onLastStep = numSteps - 1 === index;
@@ -69,6 +70,15 @@ function genTester(generator, ...args) {
         return;
       }
 
+      if (prevDone && value) {
+        expected.push(value.expected || value);
+        return;
+      }
+
+      if (result.done) {
+        prevDone = true;
+      }
+
       const ranOutOfSteps = !result.done && onLastStep;
       if (ranOutOfSteps) {
         return;
@@ -88,7 +98,7 @@ function genTester(generator, ...args) {
 
       if (shouldBeFinished(value)) {
         if (!result.done) {
-          actual.push({ done: false });
+          actual.push({ done: false, value: result.value });
           expected.push({ done: true });
           return value;
         }

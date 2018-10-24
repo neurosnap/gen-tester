@@ -1,3 +1,9 @@
+declare namespace jest {
+  interface Matchers<R> {
+    stepsToBeEqual: () => R;
+  }
+}
+
 declare module 'gen-tester' {
   export interface TesterResults {
     actual: any[];
@@ -38,7 +44,7 @@ declare module 'gen-tester' {
   export function skip(value?: any): YieldResult;
   export function yields(value: any, returns?: any): YieldResult;
   export function throws(returns: any): ThrowResult;
-  export function finishes(value: any, returns?: any): FinishesResult;
+  export function finishes(value?: any, returns?: any): FinishesResult;
   export function evaluateSteps({
     actual,
     expected,
