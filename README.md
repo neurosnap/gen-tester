@@ -238,8 +238,15 @@ function* fn() {
 }
 
 const tester = genTester(fn);
+// message gets called when a step is not equal
+const message = (actual, expected, index) => {
+  return `error on step ${index + 1}:
+
+  actual: ${actual}
+  expected: ${expected}`;
+};
 const { actual, expected } = tester(1, 4, 3);
-const results = evauluateSteps({ actual, expected, equal: deepEqual });
+const results = evauluateSteps({ actual, expected, equal: deepEqual, message });
 console.log(results);
 /*
 {
