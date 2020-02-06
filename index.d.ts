@@ -37,9 +37,9 @@ declare module 'gen-tester' {
     actual: any[];
     expected: any[];
   }
-  export function genTester(
-    fn: Function,
-    ...args: any[]
+  export function genTester<Fn extends (...args: any[]) => any>(
+    fn: Fn,
+    ...args: Parameters<Fn>
   ): (...args: any[]) => TesterResults;
   export function skip(value?: any): YieldResult;
   export function yields(value: any, returns?: any): YieldResult;

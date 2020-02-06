@@ -307,3 +307,18 @@ test('when there are more steps in test than generator', (t) => {
   t.deepEqual(expected, [1, 2, 3], 'expected should not match actual');
   t.deepEqual(actual, [1]);
 });
+
+test('when the generator returns early but we are expecting a value', (t) => {
+  t.plan(2);
+
+  function* test(ok) {
+    if (!ok) {
+      return;
+    }
+  }
+
+  const tester = genTester(test, false);
+  const { actual, expected } = tester(finishes('123'));
+  t.deepEqual(expected, ['123']);
+  t.deepEqual(actual, []);
+});
