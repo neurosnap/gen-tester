@@ -94,7 +94,11 @@ function genTester(generator, ...args) {
 
       const hasNoReturnValue =
         result.done && typeof result.value === 'undefined';
+      const hasExpectedValue = value && typeof value.expected !== 'undefined';
       if (hasNoReturnValue) {
+        if (hasExpectedValue) {
+          expected.push(value.expected);
+        }
         return;
       }
 
