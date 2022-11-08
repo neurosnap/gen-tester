@@ -11,7 +11,7 @@ to the previous `yield`.
 ## How?
 
 ```js
-const { call } = require('cosed'); // side-effects as data library
+const { call } = require('redux-saga/effects'); // side-effects as data library
 const test = require('tape');
 const { genTester, yields } = require('gen-tester');
 
